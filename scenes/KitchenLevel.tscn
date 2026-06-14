@@ -1,0 +1,224 @@
+[gd_scene load_steps=5 format=3 uid="uid://kitchen_level"]
+
+[ext_resource type="Script" path="res://scripts/KitchenLevel.gd" id="1"]
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_foam"]
+particle_flag_disable_z = true
+direction = Vector3(0, -1, 0)
+spread = 60.0
+gravity = Vector3(0, 20, 0)
+initial_velocity_min = 10.0
+initial_velocity_max = 25.0
+scale_min = 1.5
+scale_max = 3.0
+color = Color(0.95, 0.97, 1.0, 0.85)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.06, 0.05, 0.1, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.4, 0.45, 0.6, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_soakbar"]
+bg_color = Color(0.2, 0.55, 0.85, 0.8)
+
+[node name="KitchenLevel" type="Node2D"]
+script = ExtResource("1")
+
+[node name="Background" type="ColorRect" parent="."]
+position = Vector2(0, 0)
+size = Vector2(320, 180)
+color = Color(0.1, 0.09, 0.15, 1)
+
+[node name="SinkBG" type="ColorRect" parent="."]
+position = Vector2(80, 30)
+size = Vector2(160, 120)
+color = Color(0.18, 0.22, 0.28, 1)
+
+[node name="SinkRim" type="ColorRect" parent="."]
+position = Vector2(78, 28)
+size = Vector2(164, 4)
+color = Color(0.35, 0.4, 0.5, 1)
+
+[node name="TapPipe" type="ColorRect" parent="."]
+position = Vector2(155, 15)
+size = Vector2(10, 20)
+color = Color(0.5, 0.55, 0.6, 1)
+
+[node name="TapHead" type="ColorRect" parent="."]
+position = Vector2(148, 12)
+size = Vector2(24, 6)
+color = Color(0.55, 0.6, 0.65, 1)
+
+[node name="DishArea" type="Node2D" parent="."]
+position = Vector2(160, 90)
+
+[node name="DishSprite" type="ColorRect" parent="DishArea"]
+position = Vector2(-40, -40)
+size = Vector2(80, 80)
+color = Color(0.9, 0.85, 0.75, 1)
+
+[node name="DishLabel" type="Label" parent="DishArea"]
+position = Vector2(-40, 44)
+size = Vector2(80, 12)
+horizontal_alignment = 1
+text = "Dish"
+theme_override_font_sizes/font_size = 7
+theme_override_colors/font_color = Color(0.8, 0.85, 0.9, 1)
+
+[node name="DebrisSpots" type="Node2D" parent="DishArea"]
+
+[node name="ScrubOverlay" type="ColorRect" parent="DishArea"]
+position = Vector2(-40, -40)
+size = Vector2(80, 80)
+color = Color(0.85, 0.95, 1.0, 0.0)
+mouse_filter = 2
+
+[node name="FoamParticles" type="CPUParticles2D" parent="DishArea"]
+emitting = false
+amount = 12
+lifetime = 0.6
+explosiveness = 0.0
+process_material = SubResource("ParticleProcessMaterial_foam")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="StepPanel" type="PanelContainer" parent="UI"]
+position = Vector2(4, 4)
+size = Vector2(72, 120)
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="VBox" type="VBoxContainer" parent="UI/StepPanel"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="StepsTitle" type="Label" parent="UI/StepPanel/VBox"]
+layout_mode = 2
+text = "STEPS"
+theme_override_font_sizes/font_size = 7
+theme_override_colors/font_color = Color(0.55, 0.65, 0.8, 1)
+
+[node name="StepList" type="VBoxContainer" parent="UI/StepPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 3
+
+[node name="InfoPanel" type="PanelContainer" parent="UI"]
+position = Vector2(244, 4)
+size = Vector2(72, 80)
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="InfoVBox" type="VBoxContainer" parent="UI/InfoPanel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TimerLabel" type="Label" parent="UI/InfoPanel/InfoVBox"]
+layout_mode = 2
+horizontal_alignment = 1
+text = "01:30"
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.9, 0.85, 0.5, 1)
+
+[node name="DishCounter" type="Label" parent="UI/InfoPanel/InfoVBox"]
+layout_mode = 2
+horizontal_alignment = 1
+text = "Dish 1 / 2"
+theme_override_font_sizes/font_size = 7
+theme_override_colors/font_color = Color(0.65, 0.7, 0.8, 1)
+
+[node name="SoakBar" type="TextureProgressBar" parent="UI"]
+position = Vector2(80, 155)
+size = Vector2(160, 8)
+nine_patch_stretch = true
+tint_under = Color(0.15, 0.2, 0.3, 1)
+tint_progress = Color(0.2, 0.55, 0.85, 0.9)
+value = 0.0
+visible = false
+
+[node name="SoakLabel" type="Label" parent="UI"]
+position = Vector2(80, 146)
+size = Vector2(160, 10)
+horizontal_alignment = 1
+text = "SOAKING..."
+theme_override_font_sizes/font_size = 6
+theme_override_colors/font_color = Color(0.4, 0.7, 0.95, 1)
+
+[node name="HintLabel" type="Label" parent="UI"]
+position = Vector2(80, 165)
+size = Vector2(160, 12)
+horizontal_alignment = 1
+text = ""
+theme_override_font_sizes/font_size = 6
+theme_override_colors/font_color = Color(0.75, 0.8, 0.9, 1)
+
+[node name="Controls" type="HBoxContainer" parent="UI"]
+position = Vector2(80, 130)
+size = Vector2(160, 18)
+theme_override_constants/separation = 4
+
+[node name="WaterBtn" type="Button" parent="UI/Controls"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "💧 Water [W]"
+theme_override_font_sizes/font_size = 6
+
+[node name="SoapBtn" type="Button" parent="UI/Controls"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "🧼 Soap [S]"
+theme_override_font_sizes/font_size = 6
+
+[node name="DryBtn" type="Button" parent="UI/Controls"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "🧻 Dry [E]"
+theme_override_font_sizes/font_size = 6
+
+[node name="NextBtn" type="Button" parent="UI"]
+position = Vector2(116, 108)
+size = Vector2(88, 16)
+visible = false
+text = "Next Dish [Enter]"
+theme_override_font_sizes/font_size = 7
+
+[node name="FailFlash" type="ColorRect" parent="UI"]
+position = Vector2(0, 0)
+size = Vector2(320, 180)
+color = Color(0.9, 0.2, 0.2, 0.4)
+visible = false
+mouse_filter = 2
+
+[node name="ResultPanel" type="PanelContainer" parent="UI"]
+position = Vector2(60, 40)
+size = Vector2(200, 100)
+visible = false
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="VBox" type="VBoxContainer" parent="UI/ResultPanel"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 8
+
+[node name="ResultLabel" type="Label" parent="UI/ResultPanel/VBox"]
+layout_mode = 2
+horizontal_alignment = 1
+text = "Level Complete!"
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.9, 0.95, 1.0, 1)
+
+[node name="StarsLabel" type="Label" parent="UI/ResultPanel/VBox"]
+layout_mode = 2
+horizontal_alignment = 1
+text = "★★★"
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(1.0, 0.85, 0.2, 1)
+
+[node name="ContinueBtn" type="Button" parent="UI/ResultPanel/VBox"]
+layout_mode = 2
+text = "Continue →"
+theme_override_font_sizes/font_size = 9

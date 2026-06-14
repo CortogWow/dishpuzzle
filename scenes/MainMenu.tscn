@@ -1,0 +1,80 @@
+[gd_scene format=3 uid="uid://wmjoo2g0kvkg"]
+
+[ext_resource type="Script" uid="uid://cdc8o2d462g0j" path="res://scripts/MainMenu.gd" id="1"]
+
+[node name="MainMenu" type="Control" unique_id=17399192]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="BG" type="ColorRect" parent="." unique_id=668673875]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.08, 0.07, 0.14, 1)
+
+[node name="VBox" type="VBoxContainer" parent="." unique_id=934346608]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.1
+anchor_top = 0.08
+anchor_right = 0.9
+anchor_bottom = 0.95
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="VBox" unique_id=535547235]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 22
+text = "SUDS &
+SEQUENCE"
+horizontal_alignment = 1
+
+[node name="SubLabel" type="Label" parent="VBox" unique_id=1397670985]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.7, 0.8, 1)
+theme_override_font_sizes/font_size = 8
+text = "a dish-washing puzzle game"
+horizontal_alignment = 1
+
+[node name="Spacer1" type="Control" parent="VBox" unique_id=1302697654]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+
+[node name="PlayBtn" type="Button" parent="VBox" unique_id=2013999651]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "▶  PLAY"
+
+[node name="Spacer2" type="Control" parent="VBox" unique_id=313739687]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+
+[node name="LevelsLabel" type="Label" parent="VBox" unique_id=928200449]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.55, 0.65, 1)
+theme_override_font_sizes/font_size = 7
+text = "— SELECT LEVEL —"
+horizontal_alignment = 1
+
+[node name="LevelSelect" type="VBoxContainer" parent="VBox" unique_id=984762521]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="ControlsLabel" type="Label" parent="VBox" unique_id=782822402]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.45, 0.5, 0.6, 1)
+theme_override_font_sizes/font_size = 6
+text = "CONTROLS
+W = Water  |  S = Soap  |  E = Dry
+Click debris to scrape  |  Drag mouse to scrub"
+horizontal_alignment = 1
