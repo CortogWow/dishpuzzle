@@ -28,6 +28,8 @@ GameData="*uid://bv45h8tddijtu"
 
 window/size/viewport_width=320
 window/size/viewport_height=180
+window/size/window_width_override=3080
+window/size/window_height_override=2160
 window/size/initial_position_type=2
 window/size/resizable=false
 window/stretch/mode="canvas_items"

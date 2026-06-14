@@ -82,10 +82,10 @@ const DISH_DATA = {
 const LEVELS = [
 	{
 		"id": 1,
-		"name": "Monday Morning",
-		"dishes": [DishType.GLASS, DishType.PLATE],
+		"name": "First Day",
+		"dishes": [DishType.PLATE],
 		"par_time": 90,
-		"hint": "Start simple. Soap → Scrub → Rinse → Dry."
+		"hint": "Scrape the food off, then Soap → Scrub → Rinse → Dry."
 	},
 	{
 		"id": 2,

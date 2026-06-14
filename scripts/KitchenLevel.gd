@@ -1,27 +1,34 @@
 extends Node2D
 
 # ─── Node refs (set in scene) ─────────────────────────────────────────────────
-@onready var dish_sprite: ColorRect       = $DishArea/DishSprite
+@onready var dish_sprite: Sprite2D        = $DishArea/DishSprite
 @onready var dish_label: Label            = $DishArea/DishLabel
 @onready var debris_container: Node2D     = $DishArea/DebrisSpots
 @onready var scrub_overlay: ColorRect     = $DishArea/ScrubOverlay
+@onready var water_fill: ColorRect        = $WaterFill
+@onready var water_handle: Button         = $WaterHandle
+@onready var scraper_tool: Sprite2D       = $ScraperTool
 @onready var foam_particles: CPUParticles2D = $DishArea/FoamParticles
 
-@onready var step_list: VBoxContainer     = $UI/StepList
+@onready var step_list: VBoxContainer     = $UI/StepPanel/VBox/StepList
 @onready var hint_label: Label            = $UI/HintLabel
 @onready var soak_bar: TextureProgressBar = $UI/SoakBar
-@onready var timer_label: Label           = $UI/TimerLabel
-@onready var dish_counter: Label          = $UI/DishCounter
+@onready var timer_label: Label           = $UI/InfoPanel/InfoVBox/TimerLabel
+@onready var dish_counter: Label          = $UI/InfoPanel/InfoVBox/DishCounter
 @onready var water_btn: Button            = $UI/Controls/WaterBtn
 @onready var soap_btn: Button             = $UI/Controls/SoapBtn
 @onready var dry_btn: Button              = $UI/Controls/DryBtn
-@onready var next_btn: Button             = $UI/Controls/NextBtn
+@onready var next_btn: Button             = $UI/NextBtn
 
-@onready var fail_flash: ColorRect        = $FailFlash
-@onready var result_panel: PanelContainer = $ResultPanel
-@onready var result_label: Label          = $ResultPanel/VBox/ResultLabel
-@onready var stars_label: Label           = $ResultPanel/VBox/StarsLabel
-@onready var continue_btn: Button         = $ResultPanel/VBox/ContinueBtn
+@onready var scrape_sound: AudioStreamPlayer = $ScrapeSound
+@onready var pickup_sound: AudioStreamPlayer = $PickupSound
+@onready var scrub_sound: AudioStreamPlayer  = $ScrubSound
+@onready var music_player: AudioStreamPlayer = $MusicPlayer
+@onready var fail_flash: ColorRect        = $UI/FailFlash
+@onready var result_panel: PanelContainer = $UI/ResultPanel
+@onready var result_label: Label          = $UI/ResultPanel/VBox/ResultLabel
+@onready var stars_label: Label           = $UI/ResultPanel/VBox/StarsLabel
+@onready var continue_btn: Button         = $UI/ResultPanel/VBox/ContinueBtn
 
 # ─── State ────────────────────────────────────────────────────────────────────
 var level_data: Dictionary
@@ -36,6 +43,12 @@ var total_score: int = 0
 
 var is_scrubbing: bool = false
 var last_mouse_pos: Vector2
+var tool_held: bool = false
+const SCRAPER_REST = Vector2(240, 120)
+const SCRAPE_THRESHOLD = 80.0
+const SCRAPE_TIME = 1.0
+var debris_progress: Dictionary = {}
+var debris_time: Dictionary = {}
 
 # ─── Pixel palette ────────────────────────────────────────────────────────────
 const COLOR_BG       = Color(0.13, 0.11, 0.18)
@@ -50,6 +63,15 @@ func _ready() -> void:
 	for d in level_data["dishes"]:
 		dish_queue.append(d as GameData.DishType)
 
+	var stream = music_player.stream as AudioStreamMP3
+	if stream:
+		stream.loop = true
+	music_player.play()
+
+	var scrub_stream = scrub_sound.stream as AudioStreamMP3
+	if scrub_stream:
+		scrub_stream.loop = true
+
 	result_panel.visible = false
 	fail_flash.visible = false
 	fail_flash.color = COLOR_FAIL
@@ -59,6 +81,7 @@ func _ready() -> void:
 
 	# Button connections
 	water_btn.pressed.connect(_on_water_pressed)
+	water_handle.pressed.connect(_on_water_pressed)
 	soap_btn.pressed.connect(_on_soap_pressed)
 	dry_btn.pressed.connect(_on_dry_pressed)
 	next_btn.pressed.connect(_on_next_pressed)
@@ -81,7 +104,6 @@ func _load_dish(index: int) -> void:
 	var ddata = GameData.DISH_DATA[dtype]
 
 	# Visual setup
-	dish_sprite.color = ddata["color"]
 	dish_label.text = ddata["name"]
 	scrub_overlay.modulate.a = 0.0
 	foam_particles.emitting = false
@@ -92,7 +114,8 @@ func _load_dish(index: int) -> void:
 	for step in ddata["required_steps"]:
 		var lbl = Label.new()
 		lbl.name = "Step_" + str(step)
-		lbl.text = "☐  " + GameData.step_name(step)
+		lbl.text = "☐ " + GameData.step_name(step)
+		lbl.add_theme_font_size_override("font_size", 4)
 		lbl.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
 		step_list.add_child(lbl)
 
@@ -101,11 +124,11 @@ func _load_dish(index: int) -> void:
 		child.queue_free()
 	for i in ddata["debris_spots"]:
 		var spot = ColorRect.new()
-		spot.size = Vector2(6, 6)
+		spot.size = Vector2(10, 10)
 		var angle = (i / float(ddata["debris_spots"])) * TAU
-		var radius = 25.0
-		spot.position = Vector2(cos(angle), sin(angle)) * radius - spot.size * 0.5 + Vector2(40, 40)
-		spot.color = Color(0.3, 0.2, 0.1)
+		var radius = 18.0
+		spot.position = Vector2(cos(angle), sin(angle)) * radius - spot.size * 0.5
+		spot.color = Color(0.45, 0.25, 0.08)
 		spot.name = "Debris_%d" % i
 		debris_container.add_child(spot)
 		# Make clickable via Area2D approach — we handle in _input instead
@@ -119,13 +142,11 @@ func _process(delta: float) -> void:
 	if not level_active:
 		return
 
-	elapsed_time += delta
-	var remaining = max(0, level_data["par_time"] - int(elapsed_time))
-	timer_label.text = "%02d:%02d" % [remaining / 60, remaining % 60]
-	if remaining == 0:
-		_end_level()
-
 	current_dish.process(delta)
+
+	if tool_held:
+		var mp = get_viewport().get_mouse_position()
+		scraper_tool.position = mp
 
 	# Soak bar
 	if current_dish.is_soaking or current_dish.has_completed(GameData.WashStep.SOAK):
@@ -156,37 +177,66 @@ func _input(event: InputEvent) -> void:
 		if next_btn.visible:
 			_on_next_pressed()
 
-	# Mouse scrubbing on dish area
+	# Pick up / put down scraper
 	if event is InputEventMouseButton:
 		var mb = event as InputEventMouseButton
-		if mb.button_index == MOUSE_BUTTON_LEFT:
-			var dish_rect = dish_sprite.get_global_rect()
-			if dish_rect.has_point(mb.global_position):
-				if mb.pressed:
-					# Check for debris click first
-					_check_debris_click(mb.global_position)
-					is_scrubbing = true
-					last_mouse_pos = mb.global_position
-				else:
-					is_scrubbing = false
+		if mb.button_index == MOUSE_BUTTON_LEFT and mb.pressed:
+			var tool_rect = Rect2(scraper_tool.global_position - Vector2(31, 27), Vector2(62, 54))
+			if not tool_held and tool_rect.has_point(mb.global_position):
+				tool_held = true
+				pickup_sound.play()
+				hint_label.text = "Scraper picked up! Jiggle it over the food spots."
+		if mb.button_index == MOUSE_BUTTON_RIGHT and mb.pressed and tool_held:
+			tool_held = false
+			scraper_tool.position = SCRAPER_REST
+			pickup_sound.play()
+			hint_label.text = "Scraper put down."
+
+	# Jiggle scraping
+	if event is InputEventMouseMotion and tool_held:
+		var moved = event.relative.length()
+		var mouse_pos = get_viewport().get_mouse_position()
+		var over_spot = false
+		for child in debris_container.get_children():
+			var cr = child as ColorRect
+			var spot_rect = Rect2(debris_container.to_global(cr.position), cr.size).grow(10)
+			if spot_rect.has_point(mouse_pos):
+				over_spot = true
+				var key = child.name
+				debris_progress[key] = debris_progress.get(key, 0.0) + moved
+				debris_time[key] = debris_time.get(key, 0.0) + get_process_delta_time()
+				if debris_progress[key] >= SCRAPE_THRESHOLD and debris_time[key] >= SCRAPE_TIME:
+					debris_progress.erase(key)
+					debris_time.erase(key)
+					current_dish.remove_debris()
+					scrape_sound.play()
+					scrub_sound.stop()
+					child.queue_free()
+					return
+				break
+		if over_spot and not scrub_sound.playing:
+			scrub_sound.play()
+		elif not over_spot and scrub_sound.playing:
+			scrub_sound.stop()
 
 	if event is InputEventMouseMotion and is_scrubbing:
 		var speed = event.relative.length()
 		current_dish.add_scrub(speed * 0.3)
 		last_mouse_pos = event.global_position
 
-func _check_debris_click(pos: Vector2) -> void:
-	for child in debris_container.get_children():
-		var cr = child as ColorRect
-		if cr.get_global_rect().has_point(pos):
-			current_dish.remove_debris()
-			child.queue_free()
-			return
 
 # ─── Button callbacks ─────────────────────────────────────────────────────────
 func _on_water_pressed() -> void:
 	current_dish.toggle_water()
 	water_btn.text = "💧 Water: " + ("ON" if current_dish.water_on else "OFF")
+	_animate_water(current_dish.water_on)
+
+func _animate_water(filling: bool) -> void:
+	var tween = create_tween()
+	var target_height = 30.0 if filling else 0.0
+	var target_y = water_fill.position.y - (30.0 - water_fill.size.y) if filling else 105.0
+	tween.tween_property(water_fill, "size:y", target_height, 1.5)
+	tween.parallel().tween_property(water_fill, "position:y", target_y, 1.5)
 
 func _on_soap_pressed() -> void:
 	current_dish.toggle_soap()
@@ -228,10 +278,6 @@ func _on_debris_removed(remaining: int) -> void:
 # ─── Level End ────────────────────────────────────────────────────────────────
 func _end_level() -> void:
 	level_active = false
-	var par = level_data["par_time"]
-	var time_bonus = max(0, par - int(elapsed_time)) * 2
-	total_score += time_bonus
-
 	GameData.record_level_result(level_data["id"], total_stars, total_score)
 
 	result_panel.visible = true

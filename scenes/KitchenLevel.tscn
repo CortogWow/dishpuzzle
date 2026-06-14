@@ -1,6 +1,13 @@
-[gd_scene load_steps=5 format=3 uid="uid://kitchen_level"]
+[gd_scene load_steps=9 format=3 uid="uid://kitchen_level"]
 
 [ext_resource type="Script" path="res://scripts/KitchenLevel.gd" id="1"]
+[ext_resource type="Texture2D" path="res://Assets/Sprites/plate_01.png" id="2"]
+[ext_resource type="AudioStream" path="res://Assets/Sounds/Scrape.mp3" id="3"]
+[ext_resource type="Texture2D" path="res://Assets/Sprites/Sink.png" id="4"]
+[ext_resource type="Texture2D" path="res://Assets/Sprites/Sponge.png" id="6"]
+[ext_resource type="AudioStream" path="res://Assets/Sounds/pickupsponge.mp3" id="7"]
+[ext_resource type="AudioStream" path="res://Assets/Sounds/spongescrub.mp3" id="8"]
+[ext_resource type="AudioStream" path="res://Assets/Sounds/Level Music 1.mp3" id="5"]
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_foam"]
 particle_flag_disable_z = true
@@ -36,33 +43,20 @@ position = Vector2(0, 0)
 size = Vector2(320, 180)
 color = Color(0.1, 0.09, 0.15, 1)
 
-[node name="SinkBG" type="ColorRect" parent="."]
-position = Vector2(80, 30)
-size = Vector2(160, 120)
-color = Color(0.18, 0.22, 0.28, 1)
-
-[node name="SinkRim" type="ColorRect" parent="."]
-position = Vector2(78, 28)
-size = Vector2(164, 4)
-color = Color(0.35, 0.4, 0.5, 1)
-
-[node name="TapPipe" type="ColorRect" parent="."]
-position = Vector2(155, 15)
-size = Vector2(10, 20)
-color = Color(0.5, 0.55, 0.6, 1)
-
-[node name="TapHead" type="ColorRect" parent="."]
-position = Vector2(148, 12)
-size = Vector2(24, 6)
-color = Color(0.55, 0.6, 0.65, 1)
+[node name="SinkSprite" type="Sprite2D" parent="."]
+position = Vector2(160, 160)
+scale = Vector2(5, 5)
+texture = ExtResource("4")
+texture_filter = 1
 
 [node name="DishArea" type="Node2D" parent="."]
-position = Vector2(160, 90)
+position = Vector2(108, 82)
 
-[node name="DishSprite" type="ColorRect" parent="DishArea"]
-position = Vector2(-40, -40)
-size = Vector2(80, 80)
-color = Color(0.9, 0.85, 0.75, 1)
+[node name="DishSprite" type="Sprite2D" parent="DishArea"]
+position = Vector2(0, 0)
+scale = Vector2(2, 2)
+texture = ExtResource("2")
+texture_filter = 1
 
 [node name="DishLabel" type="Label" parent="DishArea"]
 position = Vector2(-40, 44)
@@ -87,11 +81,30 @@ lifetime = 0.6
 explosiveness = 0.0
 process_material = SubResource("ParticleProcessMaterial_foam")
 
+[node name="WaterHandle" type="Button" parent="."]
+position = Vector2(119, 20)
+size = Vector2(16, 10)
+flat = true
+focus_mode = 0
+
+[node name="ScraperTool" type="Sprite2D" parent="."]
+position = Vector2(240, 120)
+scale = Vector2(1, 1)
+texture = ExtResource("6")
+texture_filter = 1
+mouse_filter = 2
+
+[node name="WaterFill" type="ColorRect" parent="."]
+position = Vector2(72, 105)
+size = Vector2(72, 0)
+color = Color(0.2, 0.55, 0.85, 0.45)
+mouse_filter = 2
+
 [node name="UI" type="CanvasLayer" parent="."]
 
 [node name="StepPanel" type="PanelContainer" parent="UI"]
-position = Vector2(4, 4)
-size = Vector2(72, 120)
+position = Vector2(2, 2)
+size = Vector2(26, 38)
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="VBox" type="VBoxContainer" parent="UI/StepPanel"]
@@ -101,7 +114,7 @@ theme_override_constants/separation = 2
 [node name="StepsTitle" type="Label" parent="UI/StepPanel/VBox"]
 layout_mode = 2
 text = "STEPS"
-theme_override_font_sizes/font_size = 7
+theme_override_font_sizes/font_size = 4
 theme_override_colors/font_color = Color(0.55, 0.65, 0.8, 1)
 
 [node name="StepList" type="VBoxContainer" parent="UI/StepPanel/VBox"]
@@ -109,6 +122,7 @@ layout_mode = 2
 theme_override_constants/separation = 3
 
 [node name="InfoPanel" type="PanelContainer" parent="UI"]
+visible = false
 position = Vector2(244, 4)
 size = Vector2(72, 80)
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
@@ -162,6 +176,7 @@ size = Vector2(160, 18)
 theme_override_constants/separation = 4
 
 [node name="WaterBtn" type="Button" parent="UI/Controls"]
+visible = false
 layout_mode = 2
 size_flags_horizontal = 3
 text = "💧 Water [W]"
@@ -222,3 +237,16 @@ theme_override_colors/font_color = Color(1.0, 0.85, 0.2, 1)
 layout_mode = 2
 text = "Continue →"
 theme_override_font_sizes/font_size = 9
+
+[node name="ScrapeSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3")
+
+[node name="PickupSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("7")
+
+[node name="ScrubSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("8")
+
+[node name="MusicPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("5")
+autoplay = true
